@@ -5,4 +5,4 @@ spec:
   forProvider:
     name: "redis"
     autoRenewFlag: 0
-    chargeType: SPOTPAID
+    # chargeType: SPOTPAID
