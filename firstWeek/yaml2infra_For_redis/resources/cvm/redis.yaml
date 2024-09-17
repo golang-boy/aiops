@@ -1,6 +1,9 @@
 apiVersion: redis.tencentcloud.crossplane.io/v1alpha1
 kind: Instance
 
+metadata:
+  name: "redis"
+
 spec:
   forProvider:
     name: "redis"
