@@ -1,0 +1,7 @@
+apiVersion: redis.tencentcloud.crossplane.io/v1alpha1
+kind: Instance
+
+spec:
+  forProvider:
+    autoRenewFlag: 0
+    chargeType: SPOTPAID
