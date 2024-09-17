@@ -9,4 +9,5 @@ spec:
     name: "redis"
     autoRenewFlag: 0
     availabilityZone: ap-guangzhou-3
+    memSize: 1
     # chargeType: SPOTPAID
