@@ -8,4 +8,5 @@ spec:
   forProvider:
     name: "redis"
     autoRenewFlag: 0
+    availabilityZone: ap-guangzhou-3
     # chargeType: SPOTPAID
