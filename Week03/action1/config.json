@@ -1,0 +1,6 @@
+{
+    "service": {
+        "key": "max_connections",
+        "value": 100
+    }
+}
