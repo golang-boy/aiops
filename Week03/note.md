@@ -78,6 +78,22 @@ encoding = tiktoken.encoding_for_model('gpt-3.5-turbo')
 
 ### JSON Mode 无法实现复杂的业务逻辑，需要结合function calling实现复杂的业务逻辑
 
+```
+completion = client.chat.completions.create(
+    model="gpt-4o-mini",
+    response_format={"type": "json_object"},   # 这是关键，json mode指的是这个
+    messages=[
+        {
+            "role": "system",
+            "content": '你现在是一个 JSON 对象提取专家，请参考我的 JSON 定义输出 JSON 对象。示例：{"service_name":"","action":""}，其中，action 可以是 get_log（获取日志）、restart（重启服务）、delete（删除工作负载）',
+        },
+        {
+            "role": "user",
+            "content": "帮我重启 payment 服务。",
+        },
+    ],
+)
+```
 
 
 ### fine-tuning
