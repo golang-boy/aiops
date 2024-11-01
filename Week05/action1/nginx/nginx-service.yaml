@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx-service
+spec:
+  type: NodePort  # 可以使用 NodePort、ClusterIP 或 LoadBalancer
+  ports:
+  - port: 80      # 服务端口
+    targetPort: 80 # 转发到容器的端口
+    nodePort: 30080 # 可选，指定 NodePort（在 NodePort 类型时）
+  selector:
+    app: nginx
