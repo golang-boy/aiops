@@ -2,7 +2,7 @@
  * @Author: 刘慧东
  * @Date: 2024-11-01 15:48:39
  * @LastEditors: 刘慧东
- * @LastEditTime: 2024-11-04 19:14:56
+ * @LastEditTime: 2024-11-04 19:41:09
 -->
 # 第五周
 ---
@@ -243,6 +243,12 @@ Sync/Add/Update for Deployment test-deployment, Replicas: 1
 2024/11/04 19:13:26 Dropping deployment "default/test-deployment" out of the queue: simulated error for deployment test-deployment
 ```
 
+
+总结: 
+1. list watch后，informer会收到变化的对象，然后放入indexer中缓存，
+2. 通过cache中的函数计算得出key，然后放入用户队列
+3. 控制循环controller从队列中取出key，根据key从cache中取出对象，进行业务处理
+4. 处理失败，重新放入队列，这是个延迟队列，隔一段时间后，会重试
 
 
 ## 实践三
