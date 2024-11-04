@@ -2,7 +2,7 @@
  * @Author: 刘慧东
  * @Date: 2024-11-01 15:48:39
  * @LastEditors: 刘慧东
- * @LastEditTime: 2024-11-01 18:23:00
+ * @LastEditTime: 2024-11-04 19:14:56
 -->
 # 第五周
 ---
@@ -193,9 +193,56 @@ demo-1-99979696-xlvtw               0/1     CrashLoopBackOff   13 (2m50s ago)   
 nginx-deployment-7d9745ffbd-96pcm   1/1     Running            0                4s
 ```
 
+### 5. dynamicClient 是什么?
+
+ [代码在这里](./action4/main.go)
+
+  通过定义gvr,获取k8s资源, gvr是group,version,resource的缩写。然后将返回的非结构化数据转换为对应的结构化数据 (里面使用的是反射)
+
+  写好的资源配置文件，代码中转为unstructured.Unstructured对象，根据它提供的一些函数进行元数据处理，调用动态客户端，生成资源
+
 ## 实践二
 
-    使用 Informer + RateLimitingQueue 监听 Pod 事件；
+    使用 Informer + RateLimitingQueue 监听 Pod 事件； 
+    [代码在这里](./action6/main.go)
+
+    生产中不推荐使用watch, 原因：
+    1. watch直连api server, api server压力很大
+    2. 不同资源的watch,api server需要维护多个连接，资源多，连接多
+    3. 断开重连，会丢失事件
+    4. 没有控制，事件会源源不断来, 需要缓存一下
+    5. watch到的事件，处理失败后，没法再来一次
+
+    因此，需要使用informer机制来处理系统事件
+
+
+```
+(robot3) root@localhost:action6(main *%>) $ kubectl create deployment test-deployment --image nginx:latest
+deployment.apps/test-deployment created
+(robot3) root@localhost:action6(main *%>) $ 
+```
+
+controller重启后，收到deployment为test-deployment的相关事件，触发失败，失败重新入队重试，重试5次后，删除队列中的deployment，不再重试
+```
+(robot3) root@localhost:action6(main *%>) $ ./action 
+Sync/Add/Update for Deployment demo-1, Replicas: 1
+Sync/Add/Update for Deployment nginx-deployment, Replicas: 1
+Sync/Add/Update for Deployment test-deployment, Replicas: 1
+2024/11/04 19:13:16 Retry 0 for key default/test-deployment
+Sync/Add/Update for Deployment coredns, Replicas: 2
+Sync/Add/Update for Deployment local-path-provisioner, Replicas: 1
+Sync/Add/Update for Deployment test-deployment, Replicas: 1
+2024/11/04 19:13:18 Retry 1 for key default/test-deployment
+Sync/Add/Update for Deployment test-deployment, Replicas: 1
+2024/11/04 19:13:20 Retry 2 for key default/test-deployment
+Sync/Add/Update for Deployment test-deployment, Replicas: 1
+2024/11/04 19:13:22 Retry 3 for key default/test-deployment
+Sync/Add/Update for Deployment test-deployment, Replicas: 1
+2024/11/04 19:13:24 Retry 4 for key default/test-deployment
+Sync/Add/Update for Deployment test-deployment, Replicas: 1
+2024/11/04 19:13:26 Dropping deployment "default/test-deployment" out of the queue: simulated error for deployment test-deployment
+```
+
 
 
 ## 实践三
