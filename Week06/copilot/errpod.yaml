@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: error-logging-pod
+spec:
+  containers:
+    - name: nginx-container
+      image: nginx:latest
+      imagePullPolicy: IfNotPresent
+      command: ["nginx", "-g", "daemon off;"]
+      # 以下命令会引发错误
+      args: ["nginx", "-g", "daemon off; invalid_option"]
+      # 由于无效的选项，nginx 会在启动时记录错误日志
+      ports:
+        - containerPort: 80

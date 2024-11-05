@@ -8,6 +8,12 @@
 
    通过命令行实现上述功能
 
+## 实践一
+
+   让大模型根据输入，调用k8s的api，执行对应的操作
+
+  [代码在这里](./copilot/k8s/helper.go)
+
 1. 创建代码框架
    ```
    mkdir -p copilot
@@ -151,3 +157,49 @@ Found pod: local-path-provisioner-6bc4bddd6b-5mp6h
     - 指令需要明确，否则大模型会理解错误，导致指令执行失败
     - 优化点为将用户输入的进行指令调优,确保指令的准确性
     - functionCalling需要注意返回，否则会导致指令执行失败
+
+
+
+## 实践二
+
+  能让大模型诊断日志
+
+  [代码在这里](./copilot/k8s/event.go)
+
+```
+(robot3) root@localhost:copilot(main *%=) $ ./copilot pprof event
+找到以下 Pod Waring 事件及其日志：
+
+Pod 名称: error-logging-pod
+Event Message: Failed to pull image "nginx:latest": rpc error: code = DeadlineExceeded desc = failed to pull and unpack image "docker.io/library/nginx:latest": failed to resolve reference "docker.io/library/nginx:latest": failed to do request: Head "https://registry-1.docker.io/v2/library/nginx/manifests/latest": dial tcp 157.240.7.5:443: i/o timeout
+Namespace: default
+Logs:
+nginx: invalid option: "nginx"
+
+Event Message: Error: ErrImagePull
+Namespace: default
+Logs:
+nginx: invalid option: "nginx"
+
+Event Message: Error: ImagePullBackOff
+Namespace: default
+Logs:
+nginx: invalid option: "nginx"
+
+Event Message: Failed to pull image "nginx:latest": rpc error: code = Unknown desc = failed to pull and unpack image "docker.io/library/nginx:latest": failed to resolve reference "docker.io/library/nginx:latest": failed to do request: Head "https://registry-1.docker.io/v2/library/nginx/manifests/latest": dial tcp 59.24.3.173:443: i/o timeout
+Namespace: default
+Logs:
+nginx: invalid option: "nginx"
+
+Event Message: Failed to pull image "nginx:latest": rpc error: code = Unknown desc = failed to pull and unpack image "docker.io/library/nginx:latest": failed to resolve reference "docker.io/library/nginx:latest": failed to do request: Head "https://registry-1.docker.io/v2/library/nginx/manifests/latest": dial tcp 108.160.163.102:443: i/o timeout
+Namespace: default
+Logs:
+nginx: invalid option: "nginx"
+
+Event Message: Failed to pull image "nginx:latest": rpc error: code = DeadlineExceeded desc = failed to pull and unpack image "docker.io/library/nginx:latest": failed to resolve reference "docker.io/library/nginx:latest": failed to do request: Head "https://registry-1.docker.io/v2/library/nginx/manifests/latest": dial tcp 31.13.94.41:443: i/o timeout
+Namespace: default
+Logs:
+nginx: invalid option: "nginx"
+```
+
+实验有些失败，送给大模型的日志有点多，响应太长，终止实验,后续有时间看看如何优化
