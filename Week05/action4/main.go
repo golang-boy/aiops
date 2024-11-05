@@ -61,6 +61,8 @@ func main() {
 
 	fmt.Println(apiVersion)
 
+	// 根据api
+
 	for _, v := range podList.Items {
 		fmt.Printf("namespace: %s, name: %s, status: %s\n", v.Namespace, v.Name, v.Status.Phase)
 	}

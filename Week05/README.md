@@ -2,7 +2,7 @@
  * @Author: 刘慧东
  * @Date: 2024-11-01 15:48:39
  * @LastEditors: 刘慧东
- * @LastEditTime: 2024-11-04 19:41:09
+ * @LastEditTime: 2024-11-05 11:11:33
 -->
 # 第五周
 ---
@@ -255,3 +255,122 @@ Sync/Add/Update for Deployment test-deployment, Replicas: 1
 
     创建一个新的自定义 CRD（Group：aiops.com, Version: v1alpha1, Kind: AIOps），并使用 dynamicClient 获取该资源。
 
+流程：
+1. 定义crd
+```
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: myresources.aiops.org
+spec:
+  group: aiops.org
+  versions:
+    - name: v1alpha1           # 定义版本
+      served: true
+      storage: true
+      schema:
+        openAPIV3Schema:
+          type: object
+          properties:
+            spec:
+              type: object
+              properties:         # 定义资源属性
+                field1:
+                  type: string
+                  description: First example field
+                field2:
+                  type: string
+                  description: Second example field
+            status:
+              type: object
+  scope: Namespaced
+  names:
+    plural: myresources     # 资源名字, 命令行获取时输入的, 复数的
+    singular: myresource    # 资源名字, 命令行获取时输入的, 单数的
+    kind: AIOps             # 定义kind
+    shortNames:
+      - myres
+```
+2. 创建crd
+```
+(robot3) root@localhost:action7(main *%=) $ kubectl apply -f crd.yaml 
+customresourcedefinition.apiextensions.k8s.io/myresources.aiops.org created
+```
+
+3. 定义并创建自己的crd对象
+
+```
+apiVersion: aiops.org/v1alpha1
+kind: AIOps
+metadata:
+  name: my-first-crd
+  namespace: default
+spec:
+  field1: "ExampleValue1"
+  field2: "ExampleValue2"
+```
+```
+(robot3) root@localhost:action7(main *%=) $ kubectl apply -f resource.yml 
+aiops.aiops.org/my-first-crd created
+```
+
+```
+(robot3) root@localhost:action7(main *%=) $ kubectl get myresources
+NAME           AGE
+my-first-crd   48s
+(robot3) root@localhost:action7(main *%=) $ kubectl get myresource 
+NAME           AGE
+my-first-crd   52s
+```
+
+
+4. 通过dynamicclient获取自己的crd对象,(根据kind去获取)
+
+```
+(robot3) root@localhost:action7(main *%=) $ ./action get AIOps      
+Name: my-first-crd, Namespace: default, UID: 5b33348c-3d5b-483f-a731-cc197eb5d587
+(robot3) root@localhost:action7(main *%=) $ ./action get aiops
+Name: my-first-crd, Namespace: default, UID: 5b33348c-3d5b-483f-a731-cc197eb5d587
+```
+
+总结：
+ 1. 定义并创建crd后，通过mapper对象，将gvk转换为gvr
+ 2. 有了gvr后，通过```dynamicClient.Resource(mapping.Resource).Namespace("default")```这种方式，获取到对应的resource对象,进而list拿到信息
+
+
+### 概念解释
+
+1.  gvk是什么？
+
+    gvk是Group Version Kind的缩写，是Kubernetes API中的一种标识符，用于唯一标识一个资源类型。它由三个部分组成：
+   
+    - Group：资源的API组，例如apps、batch、core等。
+    - Version：资源的API版本，例如v1、v1beta1等。
+    - Kind：资源的类型，例如Pod、Service、Deployment等。
+
+例如，在Kubernetes中，Pod资源的gvk为：
+
+    - Group：core
+    - Version：v1
+    - Kind：Pod
+
+2. gvr是什么？
+
+    gvr是Group Version Resource的缩写，是Kubernetes API中的一种标识符，用于唯一标识一个资源实例。它由三个部分组成：
+
+    - Group：资源的API组，例如apps、batch、core等。
+    - Version：资源的API版本，例如v1、v1beta1等。
+    - Resource：资源的名称，例如pods、services、deployments等。
+
+例如，在Kubernetes中，一个名为my-pod的Pod资源的gvr为：
+
+    - Group：core
+    - Version：v1
+    - Resource：pods
+    - Name：my-pod
+
+3. gvk和gvr的区别
+
+  一个是资源的类型，一个是资源的实例,前者是抽象的，后者是具体的。
+
+  

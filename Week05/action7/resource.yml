@@ -1,0 +1,9 @@
+
+apiVersion: aiops.org/v1alpha1
+kind: AIOps
+metadata:
+  name: my-first-crd
+  namespace: default
+spec:
+  field1: "ExampleValue1"
+  field2: "ExampleValue2"
