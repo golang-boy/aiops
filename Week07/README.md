@@ -82,3 +82,76 @@ nginx-deployment-7d9745ffbd-96pcm     1/1     Running            0              
 redis                                 0/1     ImagePullBackOff   0                111m
 test-deployment-67b84cd4c6-7nvpp      0/1     ErrImagePull       0                21h
 ```
+
+### 目录结构解释
+(robot3) root@localhost:application(main=) $ tree -L 2
+.
+|-- Dockerfile
+|-- Makefile
+|-- PROJECT
+|-- README.md
+|-- api                                   // api资源定义
+|   `-- v1
+|-- bin
+|   |-- controller-gen -> /home/gogo/aiops/Week07/application/bin/controller-gen-v0.16.4
+|   |-- controller-gen-v0.16.4
+|   |-- kustomize -> /home/gogo/aiops/Week07/application/bin/kustomize-v5.4.3
+|   `-- kustomize-v5.4.3
+|-- cmd                                   // 应用程序入口
+|   `-- main.go
+|-- config                                // crd对象，生成的样例在这里
+|   |-- crd
+|   |-- default
+|   |-- manager
+|   |-- network-policy
+|   |-- prometheus
+|   |-- rbac
+|   `-- samples
+|-- go.mod
+|-- go.sum
+|-- hack
+|   `-- boilerplate.go.txt
+|-- internal
+|   `-- controller                      // 控制器
+`-- test
+    |-- e2e
+    `-- utils
+
+
+## 实践二
+
+    试试定时弹性伸缩, 把nginx的工作负载通过hpa在某个时间点进行扩缩容
+
+    定时弹性伸缩是什么？
+
+    根据预定的时间表自动增加或减少资源的使用量。例如，在业务高峰期自动增加资源，而在业务低谷期减少资源，以优化资源利用率和降低成本。这种功能特别适用于那些业务量有明显时间周期性变化的应用场景‌
+
+
+    ```
+    spec:
+      scaleTarget:
+        apiVersion: apps/v1
+        kind: Deployment
+        name: nginx
+      jobs:
+        - name: "scale-up"
+          schedule: "*/1 * * * *"   // 每分钟扩一下
+          size: 3             // 扩到3个
+    ```
+
+
+
+
+1. 建个operator项目
+```
+ go mod init hpa
+ kubebuilder init --domain=aiops.org
+ CGO_ENABLED=0 kubebuilder create api --group autoscal --version v1 --kind Hpa
+```
+
+
+2. 编辑api/v1/hpa_types.go
+
+
+
+

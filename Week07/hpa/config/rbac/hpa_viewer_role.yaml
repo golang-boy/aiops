@@ -1,0 +1,23 @@
+# permissions for end users to view hpas.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    app.kubernetes.io/name: hpa
+    app.kubernetes.io/managed-by: kustomize
+  name: hpa-viewer-role
+rules:
+- apiGroups:
+  - autoscal.aiops.org
+  resources:
+  - hpas
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - autoscal.aiops.org
+  resources:
+  - hpas/status
+  verbs:
+  - get

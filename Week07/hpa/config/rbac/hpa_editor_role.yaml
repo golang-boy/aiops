@@ -1,0 +1,27 @@
+# permissions for end users to edit hpas.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    app.kubernetes.io/name: hpa
+    app.kubernetes.io/managed-by: kustomize
+  name: hpa-editor-role
+rules:
+- apiGroups:
+  - autoscal.aiops.org
+  resources:
+  - hpas
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - autoscal.aiops.org
+  resources:
+  - hpas/status
+  verbs:
+  - get

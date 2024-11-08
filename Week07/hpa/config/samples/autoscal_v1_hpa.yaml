@@ -1,0 +1,9 @@
+apiVersion: autoscal.aiops.org/v1
+kind: Hpa
+metadata:
+  labels:
+    app.kubernetes.io/name: hpa
+    app.kubernetes.io/managed-by: kustomize
+  name: hpa-sample
+spec:
+  # TODO(user): Add fields here

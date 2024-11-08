@@ -1,0 +1,4 @@
+## Append samples of your project ##
+resources:
+- autoscal_v1_hpa.yaml
+# +kubebuilder:scaffold:manifestskustomizesamples
