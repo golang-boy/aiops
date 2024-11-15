@@ -1,4 +1,4 @@
-# 第七周
+  # 第七周
 
 operator 实践
 
@@ -84,6 +84,7 @@ test-deployment-67b84cd4c6-7nvpp      0/1     ErrImagePull       0              
 ```
 
 ### 目录结构解释
+```
 (robot3) root@localhost:application(main=) $ tree -L 2
 .
 |-- Dockerfile
@@ -116,11 +117,12 @@ test-deployment-67b84cd4c6-7nvpp      0/1     ErrImagePull       0              
 `-- test
     |-- e2e
     `-- utils
+```
 
 
 ## 实践二
 
-  试试定时弹性伸缩, 把nginx的工作负载通过hpa在某个时间点进行扩缩容
+    试试定时弹性伸缩, 把nginx的工作负载通过hpa在某个时间点进行扩缩容
 
   定时弹性伸缩是什么？
 
@@ -252,7 +254,7 @@ test-deployment      0/1     1            0           10d
   
 ## 实践三
   
-  怎么打包这个operator呢？
+    怎么打包这个operator呢？
 
   以实践二为例
 
@@ -273,3 +275,105 @@ test-deployment      0/1     1            0           10d
 
 
 
+## 实践四
+
+
+    试试operator-sdk
+
+  可以通过helm chart, 生成operator， 会自动引用helm chart中的values.yaml的内容，作为crd的spec
+  当crd变化时，自动变更，生成新的重新安装
+
+
+1. 安装operator-sdk
+
+https://sdk.operatorframework.io/docs/installation/
+
+```
+export ARCH=$(case $(uname -m) in x86_64) echo -n amd64 ;; aarch64) echo -n arm64 ;; *) echo -n $(uname -m) ;; esac)
+export OS=$(uname | awk '{print tolower($0)}')
+export OPERATOR_SDK_DL_URL=https://github.com/operator-framework/operator-sdk/releases/download/v1.37.0
+curl -LO ${OPERATOR_SDK_DL_URL}/operator-sdk_${OS}_${ARCH}
+chmod +x operator-sdk_${OS}_${ARCH} && sudo mv operator-sdk_${OS}_${ARCH} /usr/local/bin/operator-sdk
+```
+
+上述略过了包校验
+
+2. 做个部署nginx的operator
+
+```shell
+(robot3) root@localhost:Week07(main *=) $ mkdir nginx
+(robot3) root@localhost:Week07(main *=) $ cd nginx/
+(robot3) root@localhost:nginx(main *=) $ go mod init nginx-operator
+go: creating new go.mod: module nginx-operator
+(robot3) root@localhost:nginx(main *%=) $ operator-sdk init --domain aiops.org --plugins=helm 
+INFO[0000] Writing kustomize manifests for you to edit... 
+Next: define a resource with:
+$ operator-sdk create api
+(robot3) root@localhost:nginx(main *%=) $ ls
+Dockerfile  Makefile  PROJECT  config  go.mod  helm-charts  watches.yaml
+```
+
+3. 创建一个CRD
+
+指定helm chart的repo地址和chart名称
+```
+(robot3) root@localhost:nginx(main *%=) $  operator-sdk create api --group web --version v1 --kind Nginx --helm-chart-repo https://charts.bitnami.com/bitnami --helm-chart nginx 
+
+INFO[0011] Writing kustomize manifests for you to edit... 
+panic: runtime error: invalid memory address or nil pointer dereference
+[signal SIGSEGV: segmentation violation code=0x1 addr=0x38 pc=0x20f6d8b]
+
+goroutine 1 [running]:
+helm.sh/helm/v3/pkg/registry.(*Client).Tags(0x0, {0xc005efa570?, 0xc0000a9210?})
+        /home/runner/go/pkg/mod/helm.sh/helm/v3@v3.14.3/pkg/registry/client.go:671 +0x12b
+helm.sh/helm/v3/internal/resolver.(*Resolver).Resolve(0xc0000a9458, {0xc004a7acc0, 0x1, 0x1}, 0xc005d1af30?)
+        /home/runner/go/pkg/mod/helm.sh/helm/v3@v3.14.3/internal/resolver/resolver.go:153 +0x588
+helm.sh/helm/v3/pkg/downloader.(*Manager).resolve(0xc005d1aa20?, {0xc004a7acc0?, 0xc004a7acc0?, 0x1?}, 0x0?)
+        /home/runner/go/pkg/mod/helm.sh/helm/v3@v3.14.3/pkg/downloader/manager.go:235 +0x5f
+helm.sh/helm/v3/pkg/downloader.(*Manager).Update(0xc005d1aa20)
+        /home/runner/go/pkg/mod/helm.sh/helm/v3@v3.14.3/pkg/downloader/manager.go:194 +0xdc
+helm.sh/helm/v3/pkg/downloader.(*Manager).Build(0xc005d1aa20)
+        /home/runner/go/pkg/mod/helm.sh/helm/v3@v3.14.3/pkg/downloader/manager.go:95 +0x3d2
+```
+
+报了个错误, 这应该是helm的依赖问题
+
+```
+(robot3) root@localhost:nginx(main *%=) $ helm repo add bitnami https://charts.bitnami.com/bitnami
+"bitnami" has been added to your repositories
+(robot3) root@localhost:nginx(main *%=) $ helm dependencies build 
+Hang tight while we grab the latest from your chart repositories...
+...Successfully got an update from the "stable" chart repository
+...Successfully got an update from the "bitnami" chart repository
+Update Complete. ⎈Happy Helming!⎈
+Saving 1 charts
+Downloading common from repo https://charts.bitnami.com/bitnami
+Deleting outdated charts
+```
+
+依赖下载完毕后，删除掉之前创建的CRD，重新来一次
+```
+FATA[0000] failed to create API: unable to scaffold with "kustomize.common.kubebuilder.io/v2": error scaffolding kustomize API manifests: failed to create config/samples/web_v1_nginx.yaml: file already exists 
+
+(robot3) root@localhost:nginx(main *%=) $ operator-sdk create api --group web --version v1 --kind Nginx  --helm-chart ./helm-charts/nginx
+INFO[0000] Writing kustomize manifests for you to edit... 
+Created helm-charts/nginx
+Generating RBAC rules
+WARN[0020] Skipping rule generation for manifest-1. Failed to determine resource scope for policy/v1beta1, Kind=PodDisruptionBudget. 
+WARN[0020] The RBAC rules generated in config/rbac/role.yaml are based on the chart's default manifest. Some rules may be missing for resources that are only enabled with custom values, and some existing rules may be overly broad. Double check the rules generated in config/rbac/role.yaml to ensure they meet the operator's permission requirements. 
+```
+
+
+```
+(robot3) root@localhost:nginx(main *%=) $ make docker-build         // 此处可以通过IMG定义镜像名称
+...
+Successfully built e500a19a9337
+Successfully tagged controller:latest
+```
+
+部署operator
+
+```
+kind load docker-image controller:latest   // 加入kind
+make deploy IMG="controller:latest"
+```
