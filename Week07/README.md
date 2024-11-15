@@ -120,14 +120,14 @@ test-deployment-67b84cd4c6-7nvpp      0/1     ErrImagePull       0              
 
 ## 实践二
 
-    试试定时弹性伸缩, 把nginx的工作负载通过hpa在某个时间点进行扩缩容
+  试试定时弹性伸缩, 把nginx的工作负载通过hpa在某个时间点进行扩缩容
 
-    定时弹性伸缩是什么？
+  定时弹性伸缩是什么？
 
-    根据预定的时间表自动增加或减少资源的使用量。例如，在业务高峰期自动增加资源，而在业务低谷期减少资源，以优化资源利用率和降低成本。这种功能特别适用于那些业务量有明显时间周期性变化的应用场景‌
+  根据预定的时间表自动增加或减少资源的使用量。例如，在业务高峰期自动增加资源，而在业务低谷期减少资源，以优化资源利用率和降低成本。这种功能特别适用于那些业务量有明显时间周期性变化的应用场景‌
 
 
-    ```
+```
     spec:
       scaleTarget:
         apiVersion: apps/v1
@@ -137,9 +137,7 @@ test-deployment-67b84cd4c6-7nvpp      0/1     ErrImagePull       0              
         - name: "scale-up"
           schedule: "*/1 * * * *"   // 每分钟扩一下
           size: 3             // 扩到3个
-    ```
-
-
+```
 
 
 1. 建个operator项目
@@ -150,7 +148,127 @@ test-deployment-67b84cd4c6-7nvpp      0/1     ErrImagePull       0              
 ```
 
 
-2. 编辑api/v1/hpa_types.go
+2. 编辑api/v1/hpa_types.go, 增加spec字段和status相关字段
+```
+type HpaSpec struct {
+	ScaleTarget ScaleTarget `json:"scaleTarget"`
+	JobSpec     []JobSpec   `json:"jobs"`
+}
+
+type JobSpec struct {
+	Name     string `json:"name"`
+	Schedule string `json:"schedule"`
+	Size     int    `json:"size"`
+}
+
+type ScaleTarget struct {
+	APIVersion string `json:"apiVersion"`
+	Kind       string `json:"kind"`
+	Name       string `json:"name"`
+}
+
+// 另外添加一些注解，方便命令行查看
+
+// +kubebuilder:printcolumn:name="Target",type="string",JSONPath=".spec.scaleTarget.name",description="目标工作负载"
+// +kubebuilder:printcolumn:name="Schedule",type="string",JSONPath=".spec.jobs[*].schedule",description="Cron 表达式"
+// +kubebuilder:printcolumn:name="Target Size",type="integer",JSONPath=".spec.jobs[*].size",description="目标副本数"
+
+type Hpa struct {
+	metav1.TypeMeta   `json:",inline"`
+	metav1.ObjectMeta `json:"metadata,omitempty"`
+
+	Spec   HpaSpec   `json:"spec,omitempty"`
+	Status HpaStatus `json:"status,omitempty"`
+}
+
+
+make manifests  // 生成crd文件
+```
+
+增加注解后，命令行执行效果如下：
+```
+(robot3) root@localhost:hpa(main *%=) $ kubectl get hpa
+NAME         TARGET             SCHEDULE      TARGET SIZE
+hpa-sample   nginx-deployment   */1 * * * *   3
+```
+
+3. 编辑controller逻辑
+
+   逻辑大体流程为：
+     1. 从命名空间中获取hpa的crd资源对象
+     2. 循环处理hpa对象中定义的jobs，检测调度时间是否到达
+     3. 如果到达，则根据hpa对象中定义的scaleTarget和size字段, 以及状态中的信息, 对目标工作负载进行扩缩容操作
+     4. 更新hpa对象的状态，记录扩缩容操作的结果
+
+4. 启动
+
+   1. make install 安装crd的base下的资源文件
+   2. 运行operator, make run
+   3. 修改config/samples/autoscal_v1_hpa.yaml, 添加配置项
+
+```
+(robot3) root@localhost:hpa(main *%=) $ kubectl get deploy
+NAME                 READY   UP-TO-DATE   AVAILABLE   AGE
+application-sample   0/1     1            0           9d
+demo-1               0/1     1            0           13d
+nginx-deployment     1/1     1            1           13d
+test-deployment      0/1     1            0           10d
+```
+
+5. kubectl apply -f config/samples/autoscal_v1_hpa.yaml 部署
+
+环境中已有nginx-deployment, 部署hpa后，每分钟扩容一次，副本数将变为3
+```shell
+(robot3) root@localhost:hpa(main *%=) $ kubectl apply -f config/samples/autoscal_v1_hpa.yaml
+hpa.autoscal.aiops.org/hpa-sample created
+(robot3) root@localhost:hpa(main *%=) $ 
+(robot3) root@localhost:hpa(main *%=) $ kubectl get deploy 
+NAME                 READY   UP-TO-DATE   AVAILABLE   AGE
+application-sample   0/1     1            0           9d
+demo-1               0/1     1            0           13d
+nginx-deployment     3/3     3            3           13d
+```
+
+
+ 6. 手动缩容后，查看是否还会加上来
+```
+(robot3) root@localhost:hpa(main *%=) $ kubectl scale deployment nginx-deployment --replicas=1
+deployment.apps/nginx-deployment scaled
+(robot3) root@localhost:hpa(main *%=) $ 
+(robot3) root@localhost:hpa(main *%=) $ kubectl get deploy
+NAME                 READY   UP-TO-DATE   AVAILABLE   AGE
+application-sample   0/1     1            0           9d
+demo-1               0/1     1            0           13d
+nginx-deployment     1/1     1            1           13d
+test-deployment      0/1     1            0           10d
+(robot3) root@localhost:hpa(main *%=) $ kubectl get deploy --watch
+NAME                 READY   UP-TO-DATE   AVAILABLE   AGE
+application-sample   0/1     1            0           9d
+demo-1               0/1     1            0           13d
+nginx-deployment     3/3     3            3           13d
+test-deployment      0/1     1            0           10d
+```
+
+  
+## 实践三
+  
+  怎么打包这个operator呢？
+
+  以实践二为例
+
+1. 构建镜像
+
+```
+      export IMG=<some-registry>/<project-name>:tag  // 如果需要推送，则设置该环境变量
+
+      make docker-build 
+```
+
+2. 构建安装资源文件, 在dist目录下生成该文件，可以使用其在任何k8s集群中安装自己的operator
+
+```
+   make build-installer
+```
 
 
 

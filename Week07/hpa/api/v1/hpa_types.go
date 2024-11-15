@@ -2,7 +2,7 @@
  * @Author: 刘慧东
  * @Date: 2024-11-07 18:10:07
  * @LastEditors: 刘慧东
- * @LastEditTime: 2024-11-07 18:12:18
+ * @LastEditTime: 2024-11-14 18:21:43
  */
 /*
 Copyright 2024.
@@ -37,13 +37,13 @@ type HpaSpec struct {
 	// Foo is an example field of Hpa. Edit hpa_types.go to remove/update
 
 	ScaleTarget ScaleTarget `json:"scaleTarget"`
-	JobSpec     []JobSpec   `json:"jobs"`
+	Jobs        []JobSpec   `json:"jobs"`
 }
 
 type JobSpec struct {
 	Name     string `json:"name"`
 	Schedule string `json:"schedule"`
-	Size     int    `json:"size"`
+	Size     int32  `json:"size"`
 }
 
 type ScaleTarget struct {
@@ -56,11 +56,16 @@ type ScaleTarget struct {
 type HpaStatus struct {
 	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
+	CurrentReplicas int32                  `json:"currentReplicas"`
+	LastScaleTime   *metav1.Time           `json:"lastScaleTime"`
+	LastRuntimes    map[string]metav1.Time `json:"lastRuntime"`
 }
 
 // +kubebuilder:object:root=true
 // +kubebuilder:subresource:status
-
+// +kubebuilder:printcolumn:name="Target",type="string",JSONPath=".spec.scaleTarget.name",description="目标工作负载"
+// +kubebuilder:printcolumn:name="Schedule",type="string",JSONPath=".spec.jobs[*].schedule",description="Cron 表达式"
+// +kubebuilder:printcolumn:name="Target Size",type="integer",JSONPath=".spec.jobs[*].size",description="目标副本数"
 // Hpa is the Schema for the hpas API.
 type Hpa struct {
 	metav1.TypeMeta   `json:",inline"`
