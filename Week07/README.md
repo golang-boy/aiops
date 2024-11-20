@@ -377,3 +377,18 @@ Successfully tagged controller:latest
 kind load docker-image controller:latest   // 加入kind
 make deploy IMG="controller:latest"
 ```
+
+4. 打包 operator
+
+安装 olm(在集群中安装一下负载)
+
+```
+  operator-sdk olm install
+  operator-sdk run bundle  $BUNDLE_IMG
+```
+
+
+## 总结operator
+
+ * 开发时最好设计成一个幂等的operator ，即重复执行多次，结果一致
+ * 只需关注期望状态和当前状态的差异，执行业务逻辑
