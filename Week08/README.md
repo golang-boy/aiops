@@ -7,12 +7,14 @@
 
     创建一个operator,实现云上竞价实例数量的动态维护,由此构成一个竞价实例池,供给应用
 
+   [代码在这里](./action2/)
+
 
 流程：
 
 1. 创建一个operator
     ```
-    mkdir -p spotpool2 && cd spotpool2
+    mkdir -p spotpool && cd spotpool
     go mod init spotpool
     kubebuilder init --domain aiops.org
     kubebuilder create api --group demo --version v1 --kind SpotPool
@@ -94,12 +96,60 @@ An API error has returned: [TencentCloudSDKError] Code=LimitExceeded.SpotQuota, 
 
 ##　实践二
 
+  [代码与实践一在一起](./action2/)
+
 1. 在实践一的基础上(有了竞价实例池)，增加动态更新网关配置的能力，同时，部署kong网关, 这样通过网关，可以动态的将流量分发到不同的竞价实例上。
 
 2. 竞价实例里预先部署好ollama，并且下载好大模型,将该实例制作为镜像，修改crd，增加网关配置，调整实例的镜像id, 启动后通过网关访问模型。
 
 3. 当竞价实例被释放时，需要更新网关配置，将实例从网关中移除。
 
+
+两份iac代码：[kong实例的创建](./action2/kong)，[llm模型预加载腾讯云镜像实例的创建](./action2/llm_image/)
+
+operator的crd资源文件中配置申请好的信息
+
+terraform llm_image/apply
+```
+Apply complete! Resources: 3 added, 0 changed, 0 destroyed.
+
+Outputs:
+
+availability_zone = "ap-singapore-2"
+cvm_public_ip = "43.134.9.15"
+image_id = "img-5gn3j31i"
+region = "ap-singapore"
+security_group_id = "sg-aglabemo"
+ssh_password = "password123"
+subnet_id = "subnet-gfrv79s2"
+vpc_id = "vpc-86f66zht"
+```
+crd config
+```
+apiVersion: demo.aiops.org/v1
+kind: SpotPool
+metadata:
+  labels:
+    app.kubernetes.io/name: spotpool2
+    app.kubernetes.io/managed-by: kustomize
+  name: spotpool-sample
+spec:
+  secretId: xxx
+  secretKey: xxx
+  region: ap-singapore
+  availabilityZone: ap-singapore-2
+  instanceType: "GN7.2XLARGE32"
+  minimum: 2
+  maximum: 2
+  subnetId: subnet-gfrv79s2
+  vpcId: vpc-86f66zht
+  securityGroupIds:
+    - sg-aglabemo
+  imageId: img-5gn3j31i
+  # Ubuntu Server 24.04 LTS 公共镜像：img-mmytdhbn
+  instanceChargeType: SPOTPAID
+  kongGatewayIP: "119.28.76.99"
+```
 
 ## 实践三
 
@@ -174,6 +224,24 @@ kubebuilder create api --group log --version v1 --kind LogPilot
         1. 设置好查询的起止时间，通过loki的api获取日志
         2. 将日志发送到大模型，获取建议
         3. 如果包含严重问题，则发送到飞书
+
+
+5. loki信息
+```
+Apply complete! Resources: 24 added, 0 changed, 0 destroyed.
+
+Outputs:
+
+grafana_url = "http://119.28.139.114:31001"
+kube_config = "./config.yaml"
+loki_password = "loki123"
+loki_url = "http://119.28.139.114:31000"
+public_ip = "119.28.139.114"
+vm_password = "password123"
+```
+
+6. 配置crd资源
+
 
 
 ## 实践四

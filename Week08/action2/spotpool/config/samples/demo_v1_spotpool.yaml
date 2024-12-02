@@ -7,9 +7,6 @@ metadata:
   name: spotpool-sample
 spec:
   # TODO(user): Add fields here
-  secretId: AKIDIOGuRmtlgUPG7quqZBcqqjSyGQPAi8Zv
-  secretKey: Z1HqCcsuTSK7mGW7Zrz2vujMn02zlJdm
-
   region: ap-singapore
   availabilityZone: ap-singapore-2
   instanceType: "GN7.2XLARGE32"
