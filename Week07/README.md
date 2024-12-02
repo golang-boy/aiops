@@ -119,8 +119,103 @@ test-deployment-67b84cd4c6-7nvpp      0/1     ErrImagePull       0              
     `-- utils
 ```
 
-
 ## 实践二
+
+作业
+
+    增强实践一，增加 configmap 字段，实现一并生成 ConfigMap。
+
+
+流程：
+  1. 编辑api/v1/application_types.go, 增加configmap字段
+  ```
+type ApplicationSpec struct {
+	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
+	// Important: Run "make" to regenerate code after modifying this file
+
+	// Foo is an example field of Application. Edit application_types.go to remove/update
+	Deployment ApplicationDeployment    `json:"deployment"`
+	Service    corev1.ServiceSpec       `json:"service"`
+	Ingress    networkingv1.IngressSpec `json:"ingress"`
+	Config     corev1.ConfigMap         `json:"configMap,omitempty"`
+}
+  ```
+
+  2. 编辑reconcile, 增加configmap相关代码
+  ```
+  	// 创建configmap
+	config := &corev1.ConfigMap{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      app.Name,
+			Namespace: app.Namespace,
+		},
+	}
+
+	_, err = controllerutil.CreateOrUpdate(ctx, r.Client, config, func() error {
+		config.Data = app.Spec.Config.Data
+		// Set owner reference
+		if err := controllerutil.SetControllerReference(&app, config, r.Scheme); err != nil {
+			return err
+		}
+		return nil
+	})
+
+	if err != nil {
+		logger.Error(err, "unable to create or update configMap")
+		return ctrl.Result{}, err
+	}
+
+	logger.Info("configMap created or updated", "Name", config.Name)
+  ```
+
+  3. 生成crd, 安装crd, 
+  ```
+  make manifests && make install
+  ```
+
+  4. 如果不启动operator, 不会生成configmap
+
+  ```
+  CGO_ENABLED=0 make run 
+  kubectl apply -f config/samples/app_v1_application.yaml 
+  kubectl describe configmap application-sample
+  ```
+
+```
+(robot3) root@localhost:application(main *=) $ kubectl get configmaps
+NAME               DATA   AGE
+kube-root-ca.crt   1      30d
+(robot3) root@localhost:application(main *=) $ kubectl apply -f config/samples/app_v1_application.yaml 
+application.app.aiops.org/application-sample configured
+(robot3) root@localhost:application(main *=) $ kubectl get configmaps
+NAME                 DATA   AGE
+application-sample   3      2m24s
+kube-root-ca.crt     1      30d
+(robot3) root@localhost:application(main *=) $ kubectl describe configmap application-sample
+Name:         application-sample
+Namespace:    default
+Labels:       <none>
+Annotations:  <none>
+
+Data
+====
+key1:
+----
+value1
+
+key2:
+----
+value2
+
+
+BinaryData
+====
+example.bin: 13 bytes
+```
+
+
+
+## 实践三
 
     试试定时弹性伸缩, 把nginx的工作负载通过hpa在某个时间点进行扩缩容
 
@@ -252,7 +347,7 @@ test-deployment      0/1     1            0           10d
 ```
 
   
-## 实践三
+## 实践四
   
     怎么打包这个operator呢？
 
@@ -275,7 +370,7 @@ test-deployment      0/1     1            0           10d
 
 
 
-## 实践四
+## 实践五
 
 
     试试operator-sdk

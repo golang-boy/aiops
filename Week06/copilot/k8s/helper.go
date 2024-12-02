@@ -1,9 +1,3 @@
-/*
- * @Author: 刘慧东
- * @Date: 2024-11-05 12:29:12
- * @LastEditors: 刘慧东
- * @LastEditTime: 2024-11-05 13:54:06
- */
 package k8s
 
 import (

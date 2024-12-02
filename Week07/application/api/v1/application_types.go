@@ -34,6 +34,7 @@ type ApplicationSpec struct {
 	Deployment ApplicationDeployment    `json:"deployment"`
 	Service    corev1.ServiceSpec       `json:"service"`
 	Ingress    networkingv1.IngressSpec `json:"ingress"`
+	Config     corev1.ConfigMap         `json:"configMap,omitempty"`
 }
 
 type ApplicationDeployment struct {

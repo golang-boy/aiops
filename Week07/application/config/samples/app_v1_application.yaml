@@ -27,3 +27,10 @@ spec:
                   name: application-sample
                   port:
                     number: 8080
+  configMap:
+    data:
+      key1: value1
+      key2: value2
+    binaryData:
+      example.bin: SGVsbG8sIFdvcmxkIQ==  # Base64 编码的二进制内容
+    immutable: true

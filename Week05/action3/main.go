@@ -1,9 +1,3 @@
-/*
- * @Author: 刘慧东
- * @Date: 2024-11-01 18:04:23
- * @LastEditors: 刘慧东
- * @LastEditTime: 2024-11-01 18:19:57
- */
 package main
 
 import (

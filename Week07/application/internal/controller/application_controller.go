@@ -147,6 +147,32 @@ func (r *ApplicationReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 
 	logger.Info("Service created or updated", "Name", service.Name)
 
+	// 创建configmap
+	config := &corev1.ConfigMap{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      app.Name,
+			Namespace: app.Namespace,
+		},
+	}
+
+	_, err = controllerutil.CreateOrUpdate(ctx, r.Client, config, func() error {
+		config.Data = app.Spec.Config.Data
+		config.BinaryData = app.Spec.Config.BinaryData
+		config.Immutable = app.Spec.Config.Immutable
+		// Set owner reference
+		if err := controllerutil.SetControllerReference(&app, config, r.Scheme); err != nil {
+			return err
+		}
+		return nil
+	})
+
+	if err != nil {
+		logger.Error(err, "unable to create or update configMap")
+		return ctrl.Result{}, err
+	}
+
+	logger.Info("configMap created or updated", "Name", config.Name)
+
 	// 创建ingress
 	ingress := &networkingv1.Ingress{
 		ObjectMeta: metav1.ObjectMeta{
