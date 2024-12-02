@@ -3,16 +3,12 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
   labels:
-    app.kubernetes.io/name: clusterrole
-    app.kubernetes.io/instance: spotpool-viewer-role
-    app.kubernetes.io/component: rbac
-    app.kubernetes.io/created-by: spotpool
-    app.kubernetes.io/part-of: spotpool
+    app.kubernetes.io/name: spotpool2
     app.kubernetes.io/managed-by: kustomize
   name: spotpool-viewer-role
 rules:
 - apiGroups:
-  - devops.geektime.devopscamp.gk
+  - demo.aiops.org
   resources:
   - spotpools
   verbs:
@@ -20,7 +16,7 @@ rules:
   - list
   - watch
 - apiGroups:
-  - devops.geektime.devopscamp.gk
+  - demo.aiops.org
   resources:
   - spotpools/status
   verbs:

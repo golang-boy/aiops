@@ -1,0 +1,26 @@
+apiVersion: demo.aiops.org/v1
+kind: SpotPool
+metadata:
+  labels:
+    app.kubernetes.io/name: spotpool2
+    app.kubernetes.io/managed-by: kustomize
+  name: spotpool-sample
+spec:
+  # TODO(user): Add fields here
+  secretId: AKIDIOGuRmtlgUPG7quqZBcqqjSyGQPAi8Zv
+  secretKey: Z1HqCcsuTSK7mGW7Zrz2vujMn02zlJdm
+
+  region: ap-singapore
+  availabilityZone: ap-singapore-2
+  instanceType: "GN7.2XLARGE32"
+  minimum: 2
+  maximum: 2
+  subnetId: subnet-gfrv79s2
+  vpcId: vpc-86f66zht
+  securityGroupIds:
+    - sg-aglabemo
+  imageId: img-5gn3j31i
+  # Ubuntu Server 24.04 LTS 公共镜像：img-mmytdhbn
+  instanceChargeType: SPOTPAID
+  kongGatewayIP: "119.28.76.99"
+

@@ -4,6 +4,7 @@
 provider "registry.terraform.io/hashicorp/null" {
   version = "3.2.3"
   hashes = [
+    "h1:+AnORRgFbRO6qqcfaQyeX80W0eX3VmjadjnUFUJTiXo=",
     "h1:I0Um8UkrMUb81Fxq/dxbr3HLP2cecTH2WMJiwKSrwQY=",
     "zh:22d062e5278d872fe7aed834f5577ba0a5afe34a3bdac2b81f828d8d3e6706d2",
     "zh:23dead00493ad863729495dc212fd6c29b8293e707b055ce5ba21ee453ce552d",
@@ -24,6 +25,7 @@ provider "registry.terraform.io/tencentcloudstack/tencentcloud" {
   version     = "1.81.5"
   constraints = "1.81.5"
   hashes = [
+    "h1:+8zXU/8+2tK0Lzei+RO1SCDc3cFzjgD/H2ORMh0DTL4=",
     "h1:+hGLM6et4sTBQe9iIbHblE1KKxpnUaBvdV+DmTUx3TY=",
     "zh:32af8fef751d1036add72f9ce471ebe35a198caa56f14578692a9bd11b9716a0",
     "zh:4373f195443ed944902352f0d86dd92b207e33ae63e126c52e51d840ba44871a",

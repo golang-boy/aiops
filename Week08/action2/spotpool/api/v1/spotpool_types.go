@@ -23,12 +23,12 @@ import (
 // EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
 // NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
 
-// SpotpoolSpec defines the desired state of Spotpool
-type SpotpoolSpec struct {
+// SpotPoolSpec defines the desired state of SpotPool.
+type SpotPoolSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
 
-	// Foo is an example field of Spotpool. Edit spotpool_types.go to remove/update
+	// Foo is an example field of SpotPool. Edit spotpool_types.go to remove/update
 	SecretId           string   `json:"secretId,omitempty"`
 	SecretKey          string   `json:"secretKey,omitempty"`
 	Region             string   `json:"region,omitempty"`
@@ -44,10 +44,11 @@ type SpotpoolSpec struct {
 	KongGatewayIP      string   `json:"kongGatewayIP,omitempty"`
 }
 
-// SpotpoolStatus defines the observed state of Spotpool
-type SpotpoolStatus struct {
+// SpotPoolStatus defines the observed state of SpotPool.
+type SpotPoolStatus struct {
 	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
+
 	Size       int32              `json:"size,omitempty"`
 	Conditions []metav1.Condition `json:"conditions,omitempty" patchStrategy:"merge" patchMergeKey:"type" protobuf:"bytes,1,rep,name=conditions"`
 	Instances  []Instances        `json:"instances,omitempty"`
@@ -58,27 +59,27 @@ type Instances struct {
 	PublicIp   string `json:"publicIp,omitempty"`
 }
 
-//+kubebuilder:object:root=true
-//+kubebuilder:subresource:status
+// +kubebuilder:object:root=true
+// +kubebuilder:subresource:status
 
-// Spotpool is the Schema for the spotpools API
-type Spotpool struct {
+// SpotPool is the Schema for the spotpools API.
+type SpotPool struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-	Spec   SpotpoolSpec   `json:"spec,omitempty"`
-	Status SpotpoolStatus `json:"status,omitempty"`
+	Spec   SpotPoolSpec   `json:"spec,omitempty"`
+	Status SpotPoolStatus `json:"status,omitempty"`
 }
 
-//+kubebuilder:object:root=true
+// +kubebuilder:object:root=true
 
-// SpotpoolList contains a list of Spotpool
-type SpotpoolList struct {
+// SpotPoolList contains a list of SpotPool.
+type SpotPoolList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
-	Items           []Spotpool `json:"items"`
+	Items           []SpotPool `json:"items"`
 }
 
 func init() {
-	SchemeBuilder.Register(&Spotpool{}, &SpotpoolList{})
+	SchemeBuilder.Register(&SpotPool{}, &SpotPoolList{})
 }

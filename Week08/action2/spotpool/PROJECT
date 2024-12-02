@@ -2,19 +2,19 @@
 # This file is used to track the info used to scaffold your project
 # and allow the plugins properly work.
 # More info: https://book.kubebuilder.io/reference/project-config.html
-domain: devopscamp.gk
+domain: aiops.org
 layout:
 - go.kubebuilder.io/v4
-projectName: spotpool
-repo: devops-advanced-camp/spotpool
+projectName: spotpool2
+repo: spotpool
 resources:
 - api:
     crdVersion: v1
     namespaced: true
   controller: true
-  domain: devopscamp.gk
-  group: devops.geektime
-  kind: Spotpool
-  path: devops-advanced-camp/spotpool/api/v1
+  domain: aiops.org
+  group: demo
+  kind: SpotPool
+  path: spotpool/api/v1
   version: v1
 version: "3"

@@ -12,10 +12,10 @@
 
 1. 创建一个operator
     ```
-    mkdir -p spotpool && cd spotpool
+    mkdir -p spotpool2 && cd spotpool2
     go mod init spotpool
-    kuberbuilder init --domain aiops.org
-    kuberbuilder create api --group demo --version v1 --kind SpotPool
+    kubebuilder init --domain aiops.org
+    kubebuilder create api --group demo --version v1 --kind SpotPool
     ```
    
 2. 编辑api/v1/spotpool_types.go
@@ -72,17 +72,24 @@
 
         2. 上述逻辑执行完毕后，重新入队，隔一段时间后，再次执行上述逻辑
 
-5. 安装crd
+5. 安装crd, 运行operator
 ```
-make install
+make install  && make run
 ```
 
-6. 运行operator
-```make run```
-
-7. 部署crd
+6. 部署crd资源
 ```
 kubectl apply -f config/crd/bases/demo.aiops.org_spotpools.yaml
+```
+
+执行结果
+
+**要么余额不足，要么就是售罄，晚上回去再试。一小时多，网关和gpu服务器竞价实例大约花费2.5元**
+```
+INFO[0134] Instance ins-mqldieay State RUNNING          
+INFO[0134] Found 1 running instances                    
+INFO[0134] Starting 1 CVM instances                     
+An API error has returned: [TencentCloudSDKError] Code=LimitExceeded.SpotQuota, Message=指定可用区竞价实例售罄。, RequestId=5319d197-3a51-4601-8d29-ae033be8da642024-12-02T15:26:19+08:00     DPANIC  odd number of arguments passed as key-value pairs for logging   {"controller": "spotpool", "controllerGroup": "demo.aiops.org", "controllerKind": "SpotPool", "SpotPool": {"name":"spotpool-sample","namespace":"default"}, "namespace": "default", "name": "spotpool-sample", "reconcileID": "4eac451f-12a0-490c-a583-cb985e3e7701", "ignored key": "failed to star
 ```
 
 ##　实践二

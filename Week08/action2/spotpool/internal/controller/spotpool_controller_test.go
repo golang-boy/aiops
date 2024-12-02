@@ -27,10 +27,10 @@ import (
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	devopsgeektimev1 "devops-advanced-camp/spotpool/api/v1"
+	demov1 "spotpool/api/v1"
 )
 
-var _ = Describe("Spotpool Controller", func() {
+var _ = Describe("SpotPool Controller", func() {
 	Context("When reconciling a resource", func() {
 		const resourceName = "test-resource"
 
@@ -40,13 +40,13 @@ var _ = Describe("Spotpool Controller", func() {
 			Name:      resourceName,
 			Namespace: "default", // TODO(user):Modify as needed
 		}
-		spotpool := &devopsgeektimev1.Spotpool{}
+		spotpool := &demov1.SpotPool{}
 
 		BeforeEach(func() {
-			By("creating the custom resource for the Kind Spotpool")
+			By("creating the custom resource for the Kind SpotPool")
 			err := k8sClient.Get(ctx, typeNamespacedName, spotpool)
 			if err != nil && errors.IsNotFound(err) {
-				resource := &devopsgeektimev1.Spotpool{
+				resource := &demov1.SpotPool{
 					ObjectMeta: metav1.ObjectMeta{
 						Name:      resourceName,
 						Namespace: "default",
@@ -59,16 +59,16 @@ var _ = Describe("Spotpool Controller", func() {
 
 		AfterEach(func() {
 			// TODO(user): Cleanup logic after each test, like removing the resource instance.
-			resource := &devopsgeektimev1.Spotpool{}
+			resource := &demov1.SpotPool{}
 			err := k8sClient.Get(ctx, typeNamespacedName, resource)
 			Expect(err).NotTo(HaveOccurred())
 
-			By("Cleanup the specific resource instance Spotpool")
+			By("Cleanup the specific resource instance SpotPool")
 			Expect(k8sClient.Delete(ctx, resource)).To(Succeed())
 		})
 		It("should successfully reconcile the resource", func() {
 			By("Reconciling the created resource")
-			controllerReconciler := &SpotpoolReconciler{
+			controllerReconciler := &SpotPoolReconciler{
 				Client: k8sClient,
 				Scheme: k8sClient.Scheme(),
 			}
