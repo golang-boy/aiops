@@ -11,3 +11,4 @@ firstWeek/yaml2infra_For_redis/terraform.tfstate.backup
 modules/tencentCvm/.terraform.lock.hcl
 modules/docker/.terraform.lock.hcl
 modules/tencentCvm/tencentCvm.tftest.hcl
+Week10/.ipynb_checkpoints/
